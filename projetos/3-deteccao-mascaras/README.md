@@ -143,12 +143,8 @@ projetos/3-deteccao-mascaras/
 
 ### 2️⃣ Bibliotecas Utilizadas
 
-### 2️⃣ Bibliotecas Utilizadas
-
 - **`ultralytics` (v8.4.106):** Framework principal utilizado para fine-tuning, validação, inferência e exportação do modelo YOLO.
 - **`os` & `shutil`:** Bibliotecas nativas do Python utilizadas no fluxo de scripts para verificação de diretórios e manipulação/cópia de arquivos de pesos (`model.pt`).
-- **`torch` & `torchvision`:** Dependências de backend do PyTorch gerenciadas pelo Ultralytics para processamento gráfico e algoritmos de NMS (Non-Maximum Suppression).
-- **`ai-edge-litert` & `litert-torch`:** Suporte de backend carregado pelo Ultralytics no ambiente Linux para realizar a exportação e inferência no formato otimizado Google LiteRT/TFLite.
 
 ### 3️⃣ Técnica de Otimização do Modelo
 
