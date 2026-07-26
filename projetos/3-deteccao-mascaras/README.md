@@ -130,40 +130,80 @@ projetos/3-deteccao-mascaras/
 
 ## 📝 Relatório do Candidato
 
-👤 **Nome Completo:**
+👤 **Nome Completo:** Júlia Novais Pereira
 
 ### 1️⃣ Resumo da Abordagem
 
-Descreva os hiperparâmetros de fine-tuning utilizados (épocas, tamanho de
-imagem, batch size) e quaisquer ajustes feitos para lidar com o desbalanceamento
-de classes, se houver.
+- **Modelo Base:** YOLO11n (`yolo11n.pt`), adaptado via fine-tuning em CPU.
+- **Hiperparâmetros:** 
+  - Tamanho de Imagem (`imgsz`): 640x640
+  - Épocas: 20 épocas
+  - Batch Size: 16
+- **Tratamento de Desbalanceamento:** Não foram aplicados pesos customizados por classe no código para manter o padrão puro do pipeline YOLO, permitindo observar o comportamento natural da arquitetura diante da classe minoritária (`mask_weared_incorrect`).
 
 ### 2️⃣ Bibliotecas Utilizadas
 
-Liste as principais bibliotecas utilizadas, preferencialmente com suas versões.
+### 2️⃣ Bibliotecas Utilizadas
+
+- **`ultralytics` (v8.4.106):** Framework principal utilizado para fine-tuning, validação, inferência e exportação do modelo YOLO.
+- **`os` & `shutil`:** Bibliotecas nativas do Python utilizadas no fluxo de scripts para verificação de diretórios e manipulação/cópia de arquivos de pesos (`model.pt`).
+- **`torch` & `torchvision`:** Dependências de backend do PyTorch gerenciadas pelo Ultralytics para processamento gráfico e algoritmos de NMS (Non-Maximum Suppression).
+- **`ai-edge-litert` & `litert-torch`:** Suporte de backend carregado pelo Ultralytics no ambiente Linux para realizar a exportação e inferência no formato otimizado Google LiteRT/TFLite.
 
 ### 3️⃣ Técnica de Otimização do Modelo
 
-Explique o processo de exportação para TFLite realizado em `optimize_model.py`.
+A conversão do modelo treinado para o formato de borda foi realizada através da instrução `model.export(format="tflite", imgsz=640)`. 
+
+O ecossistema Ultralytics realizou a conversão do grafo PyTorch (`.pt`) para o formato unificado **Google LiteRT** (`.tflite`). Como o suporte a essa exportação direta possui limitações no ecossistema Windows, o processo foi executado dentro de um **Dev Container (Docker + WSL2 em ambiente Linux Ubuntu)**, garantindo a geração correta dos FlatBuffers e a otimização com o delegado XNNPACK para inferência ultra-rápida em CPU..
 
 ### 4️⃣ Resultados Obtidos
 
-Informe o mAP50 (e, se possível, o mAP50-95) obtido na validação, por classe se
-possível, e o tamanho dos arquivos `model.pt` e `model.tflite`.
+### Métricas de Validação (mAP):
+- **Geral (all):** 
+  - **Precision:** 0.837 | **Recall:** 0.661 | **mAP50:** 0.749 | **mAP50-95:** 0.517
+- **Por Classe:**
+  - `with_mask`: Precision: 0.940 | Recall: 0.931 | **mAP50: 0.969** | **mAP50-95: 0.674**
+  - `without_mask`: Precision: 0.889 | Recall: 0.630 | **mAP50: 0.783** | **mAP50-95: 0.496**
+  - `mask_weared_incorrect`: Precision: 0.682 | Recall: 0.421 | **mAP50: 0.495** | **mAP50-95: 0.381**
+
+### Tamanho dos Arquivos:
+- `model.pt`: **5.2 MB**
+- `model.tflite`: **10.1 MB**
 
 ### 5️⃣ Comentários Adicionais (Opcional)
 
-Dificuldades encontradas, decisões técnicas importantes, limitações do modelo
-(ex: desempenho na classe minoritária), aprendizados durante o desafio.
+- **Desafios Enfrentados:** A exportação nativa para TFLite pelo ecossistema do Ultralytics possui suporte restrito ao Windows. Para contornar essa limitação e simular o ambiente real de Edge/Linux, o desenvolvimento foi migrado para um **Dev Container (Docker + WSL2)**, viabilizando o uso do Google LiteRT.
+- **Comportamento da Classe Minoritária:** O modelo identificou corretamente instâncias de `mask_weared_incorrect` em casos evidentes (máscara no queixo), mas apresentou menor nível de confiança (*confidence score*) e confusão ocasional com `with_mask` em oclusões parciais.
 
 ### 6️⃣ Exemplo de Inferência
 
-Cole a saída do terminal ao rodar `run_inference.py` (número de detecções por
-imagem), e comente brevemente sobre o que observou ao abrir as imagens
-anotadas em `runs/detect/inferencia_exemplos/predicoes/` — por exemplo, se as
-caixas ficaram bem localizadas, se houve confusão entre classes, ou se a
-classe minoritária (`mask_weared_incorrect`) teve desempenho visivelmente pior.
+```text
+============================================================
+Projeto 3 — Inferência com model.tflite (Edge AI)
+============================================================
 
+Rodando inferência em 5 amostras usando model.tflite:
+
+Imagem                               Detecções  Detalhes
+----------------------------------------------------------------------
+Loading /workspaces/processoseletivoIA/projetos/3-deteccao-mascaras/model.tflite for LiteRT inference...
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+maksssksksss105.jpg                          9  [9x with_mask]
+maksssksksss107.jpg                          1  [1x with_mask]
+maksssksksss11.jpg                          23  [21x with_mask, 2x mask_weared_incorrect]
+maksssksksss113.jpg                          4  [3x with_mask, 1x without_mask]
+maksssksksss12.jpg                          13  [11x with_mask, 2x without_mask]
+----------------------------------------------------------------------
+TOTAL                                       50
+
+✅ Imagens anotadas salvas em: runs/detect/inferencia_exemplos/predicoes/
+   (Abra essa pasta para verificar visualmente as bounding boxes preditas)
+```
+Bounding Boxes: Muito bem localizadas e ajustadas aos rostos, mesmo em multidões e em rostos menores ao fundo.
+
+Classes Principais: Excelente separação entre with_mask e without_mask, sem confusões relevantes.
+
+Classe Minoritária (mask_weared_incorrect): O modelo detectou casos reais de uso incorreto, mas com confiança mais baixa e alguns falsos negativos, refletindo o desbalanceamento do dataset.
 ---
 
 ## 📄 Créditos do Dataset

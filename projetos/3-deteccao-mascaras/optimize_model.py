@@ -15,3 +15,15 @@ from ultralytics import YOLO
 #
 # model = YOLO("model.pt")
 # model.export(format="tflite", imgsz=...)
+
+
+from ultralytics import YOLO
+
+# 1. Carrega o modelo treinado em "model.pt"
+model = YOLO("model.pt")
+
+# 2. Exporta para TensorFlow Lite
+# A Ultralytics gera o arquivo automaticamente
+model.export(format="tflite", imgsz=640)
+
+print("✅ Modelo exportado com sucesso!")
