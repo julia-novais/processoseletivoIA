@@ -15,7 +15,6 @@ results = model.train(
 )
 
 # 3. Monta o caminho do arquivo gerado
-# results.save_dir devolve a pasta do treino (ex: runs/detect/mask_detection)
 caminho_origem = os.path.join(results.save_dir, "weights", "best.pt")
 caminho_destino = "model.pt"
 
@@ -27,4 +26,4 @@ if os.path.exists(caminho_origem):
 else:
     print(f"⚠️ Erro: O arquivo '{caminho_origem}' não foi encontrado!")
 
-# shutil.copy(results.save_dir / "weights" / "best.pt", "model.pt")
+
